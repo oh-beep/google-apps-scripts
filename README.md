@@ -1,36 +1,59 @@
 # Google Apps Scripts — Hof Holtermann
 
-Zentrale Versionskontrolle für alle Google Apps Scripts von **Hof Holtermann / HHB Agrarenergie**.
+Versionskontrolle und automatisches Deployment für alle Google Apps Scripts.
 
-## Übersicht
-
-| Script | Beschreibung | Trigger |
-|--------|-------------|---------|
-| **Smart E-Mail Router** | Automatisches Routing: Gmail → Drive → Notion. Duplikat-Check, Spam-Filter, Auto-Labeling. | Alle 5 Minuten |
-| **Drive Aufräum-Script** | Verschiebt lose Root-Dateien in den Ordner `00_EINGANG`. | Täglich um 06:00 Uhr |
-| **Smart Ablage System** | KI-gestützte Dokumentenablage mit Gemini 2.5 Flash. OCR, Auto-Umbenennung, 9+ Dokumenttypen. | Alle 5 Minuten |
-
-## Verzeichnisstruktur
+## Wie es funktioniert
 
 ```
-google-apps-scripts/
-├── smart-email-router/    # Gmail → Drive → Notion Router
-│   ├── README.md
-│   └── Code.gs
-├── drive-aufraeumen/      # Root-Dateien → 00_EINGANG
-│   ├── README.md
-│   └── Code.gs
-└── smart-ablage/          # KI-Dokumentenablage (Gemini)
-    ├── README.md
-    └── Code.gs
+GitHub ←→ script.google.com
 ```
 
-## Setup
+- **Code in GitHub ändern** → Push auf `main` → automatisch nach script.google.com deployed (via clasp + GitHub Actions)
+- **Code in script.google.com ändern** → `./scripts/pull-all.sh` lokal ausführen → committen → GitHub aktualisiert
 
-1. Öffne [script.google.com](https://script.google.com)
-2. Der aktive Code läuft direkt in Google Apps Script
-3. Bei Änderungen: Code aus script.google.com hierher kopieren und committen
+## Scripts
 
-## Hinweis
+| Script | Beschreibung | Trigger | Ordner |
+|---|---|---|---|
+| Smart E-Mail Router v3.1 | Gmail → Drive → Notion | Alle 5 Min | `smart-email-router/` |
+| Drive Aufräum-Script | Root-Dateien → 00_EINGANG | Täglich 06:00 | `drive-aufraeumen/` |
+| Smart Ablage System v4 | Dokumenten-Sortierung mit Gemini KI | Alle 5 Min | `smart-ablage/` |
 
-Die `.gs`-Dateien in diesem Repository dienen der **Versionskontrolle**. Der produktive Code läuft in [script.google.com](https://script.google.com) unter dem Konto `oh@hofholtermann.de`.
+## Ersteinrichtung
+
+### 1. Apps Script API aktivieren
+→ [script.google.com/home/usersettings](https://script.google.com/home/usersettings) → API aktivieren
+
+### 2. clasp installieren & einloggen
+```bash
+npm install -g @google/clasp
+clasp login
+```
+
+### 3. Script-IDs eintragen
+In jeder `.clasp.json` die richtige `scriptId` eintragen:
+- `smart-email-router/.clasp.json` ✅ (bereits eingetragen)
+- `drive-aufraeumen/.clasp.json` — Script-ID von script.google.com kopieren
+- `smart-ablage/.clasp.json` — Script-ID von script.google.com kopieren
+
+### 4. GitHub Secret einrichten
+Den Inhalt von `~/.clasprc.json` (nach `clasp login`) als GitHub Secret `CLASPRC_JSON` im Repo speichern.
+
+### 5. Aktuellen Code aus script.google.com holen
+```bash
+./scripts/pull-all.sh
+git add -A && git commit -m "Aktueller Code aus script.google.com" && git push
+```
+
+## Dateien pro Script
+
+```
+smart-email-router/
+├── .clasp.json          # Script-ID (nicht committen wenn sensibel)
+├── appsscript.json      # Manifest (Berechtigungen, Laufzeit)
+└── Code.gs              # Der eigentliche Script-Code
+```
+
+## Konto
+
+Alle Scripts laufen auf: `oh@hofholtermann.de`
